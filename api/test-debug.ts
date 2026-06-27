@@ -1,4 +1,4 @@
-const path = require("path");
+import compiledHandler from "./index.js";
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Content-Type", "text/plain");
@@ -21,9 +21,7 @@ export default async function handler(req: any, res: any) {
   };
   
   try {
-    addLog("1. Requiring compiled api/index.js...");
-    const compiledHandler = require("./index.js");
-    addLog("Successfully required compiled api/index.js.");
+    addLog("1. Compiled api/index.js imported successfully.");
     
     addLog("2. Mocking request and response objects for /api/data...");
     const mockReq = {
@@ -37,7 +35,6 @@ export default async function handler(req: any, res: any) {
     let responseStatus = 200;
     let responseHeaders: any = {};
     let responseBody = "";
-    let finished = false;
     
     const callbacks: any = {};
     
@@ -51,16 +48,13 @@ export default async function handler(req: any, res: any) {
       },
       json: (data: any) => {
         responseBody = JSON.stringify(data);
-        finished = true;
         if (callbacks["finish"]) callbacks["finish"]();
       },
       send: (data: any) => {
         responseBody = typeof data === "string" ? data : JSON.stringify(data);
-        finished = true;
         if (callbacks["finish"]) callbacks["finish"]();
       },
       end: () => {
-        finished = true;
         if (callbacks["finish"]) callbacks["finish"]();
       },
       on: (event: string, cb: () => void) => {

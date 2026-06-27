@@ -1,37 +1,14 @@
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-
 // server.ts
-var import_express = __toESM(require("express"), 1);
-var import_path2 = __toESM(require("path"), 1);
-var import_genai = require("@google/genai");
-var import_dotenv2 = __toESM(require("dotenv"), 1);
+import express from "express";
+import path2 from "path";
+import { GoogleGenAI, Type } from "@google/genai";
+import dotenv2 from "dotenv";
 
 // db.ts
-var import_pg = require("pg");
-var import_fs = __toESM(require("fs"), 1);
-var import_path = __toESM(require("path"), 1);
-var import_dotenv = __toESM(require("dotenv"), 1);
+import { Pool } from "pg";
+import fs from "fs";
+import path from "path";
+import dotenv from "dotenv";
 
 // src/data/mockData.ts
 var INITIAL_MENU_ITEMS = [
@@ -983,9 +960,9 @@ var INITIAL_FEEDBACK = [
 ];
 
 // db.ts
-import_dotenv.default.config();
+dotenv.config();
 var pool = null;
-var FALLBACK_FILE = import_path.default.join(process.cwd(), "db_fallback.json");
+var FALLBACK_FILE = path.join(process.cwd(), "db_fallback.json");
 function getPool() {
   if (pool) return pool;
   const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
@@ -995,7 +972,7 @@ function getPool() {
   }
   try {
     console.log("Connecting to PostgreSQL database using connection string...");
-    pool = new import_pg.Pool({
+    pool = new Pool({
       connectionString,
       ssl: connectionString.includes("localhost") || connectionString.includes("127.0.0.1") ? false : { rejectUnauthorized: false },
       connectionTimeoutMillis: 5e3,
@@ -1024,17 +1001,17 @@ var getFallbackDefaults = () => ({
   feedbacks: INITIAL_FEEDBACK
 });
 function readFallbackFile() {
-  if (!import_fs.default.existsSync(FALLBACK_FILE)) {
+  if (!fs.existsSync(FALLBACK_FILE)) {
     const defaults = getFallbackDefaults();
     try {
-      import_fs.default.writeFileSync(FALLBACK_FILE, JSON.stringify(defaults, null, 2));
+      fs.writeFileSync(FALLBACK_FILE, JSON.stringify(defaults, null, 2));
     } catch (writeErr) {
       console.warn("Failed to write fallback default file (possibly read-only filesystem):", writeErr);
     }
     return defaults;
   }
   try {
-    const data = import_fs.default.readFileSync(FALLBACK_FILE, "utf8");
+    const data = fs.readFileSync(FALLBACK_FILE, "utf8");
     return JSON.parse(data);
   } catch (err) {
     console.error("Error reading fallback JSON database. Using defaults.", err);
@@ -1043,7 +1020,7 @@ function readFallbackFile() {
 }
 function writeFallbackFile(data) {
   try {
-    import_fs.default.writeFileSync(FALLBACK_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(FALLBACK_FILE, JSON.stringify(data, null, 2));
   } catch (err) {
     console.error("Error writing fallback JSON database.", err);
   }
@@ -1645,16 +1622,16 @@ async function resetDb() {
 }
 
 // server.ts
-import_dotenv2.default.config();
-var app = (0, import_express.default)();
+dotenv2.config();
+var app = express();
 var PORT = 3e3;
-app.use(import_express.default.json());
+app.use(express.json());
 var getGeminiClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.warn("GEMINI_API_KEY environment variable is not defined.");
   }
-  return new import_genai.GoogleGenAI({
+  return new GoogleGenAI({
     apiKey: apiKey || "",
     httpOptions: {
       headers: {
@@ -1726,38 +1703,38 @@ app.post("/api/ai/auto-price", async (req, res) => {
         systemInstruction: "You are a professional restaurant revenue manager and executive chef. You specialize in menu engineering, costing, and strategic pricing. Always respond with valid JSON matching the requested schema.",
         responseMimeType: "application/json",
         responseSchema: {
-          type: import_genai.Type.OBJECT,
+          type: Type.OBJECT,
           required: ["suggestedPrice", "totalCostOfIngredients", "calculatedMargin", "ingredientsUsed", "reasoning"],
           properties: {
             suggestedPrice: {
-              type: import_genai.Type.NUMBER,
+              type: Type.NUMBER,
               description: "The suggested optimal selling price for the menu item"
             },
             totalCostOfIngredients: {
-              type: import_genai.Type.NUMBER,
+              type: Type.NUMBER,
               description: "The total raw ingredient cost for a single portion"
             },
             calculatedMargin: {
-              type: import_genai.Type.NUMBER,
+              type: Type.NUMBER,
               description: "The exact profit margin achieved (equal to the desired profit margin)"
             },
             ingredientsUsed: {
-              type: import_genai.Type.ARRAY,
+              type: Type.ARRAY,
               description: "List of ingredients used in the cost breakdown",
               items: {
-                type: import_genai.Type.OBJECT,
+                type: Type.OBJECT,
                 required: ["name", "quantityNeeded", "unit", "costContribution", "isFromInventory"],
                 properties: {
-                  name: { type: import_genai.Type.STRING },
-                  quantityNeeded: { type: import_genai.Type.NUMBER, description: "Quantity used per serving" },
-                  unit: { type: import_genai.Type.STRING, description: "E.g., kg, unit, liter" },
-                  costContribution: { type: import_genai.Type.NUMBER, description: "Total cost of this ingredient in the serving" },
-                  isFromInventory: { type: import_genai.Type.BOOLEAN, description: "Whether this ingredient was matched from the active inventory list" }
+                  name: { type: Type.STRING },
+                  quantityNeeded: { type: Type.NUMBER, description: "Quantity used per serving" },
+                  unit: { type: Type.STRING, description: "E.g., kg, unit, liter" },
+                  costContribution: { type: Type.NUMBER, description: "Total cost of this ingredient in the serving" },
+                  isFromInventory: { type: Type.BOOLEAN, description: "Whether this ingredient was matched from the active inventory list" }
                 }
               }
             },
             reasoning: {
-              type: import_genai.Type.STRING,
+              type: Type.STRING,
               description: "Detailed, chef-professional breakdown of the recommended price, portion assumptions, and profitability"
             }
           }
@@ -1835,52 +1812,52 @@ app.post("/api/ai/smart-schedule", async (req, res) => {
         systemInstruction: "You are a professional hospitality consultant and senior restaurant operations scheduler. Always respond with valid JSON matching the requested schema.",
         responseMimeType: "application/json",
         responseSchema: {
-          type: import_genai.Type.OBJECT,
+          type: Type.OBJECT,
           required: ["predictedPeaks", "scheduleSuggestions", "capacityCoverage", "executiveSummary"],
           properties: {
             predictedPeaks: {
-              type: import_genai.Type.ARRAY,
+              type: Type.ARRAY,
               description: "The identified high-volume peak times predicted from reports analytics",
               items: {
-                type: import_genai.Type.OBJECT,
+                type: Type.OBJECT,
                 required: ["timeRange", "intensity", "description"],
                 properties: {
-                  timeRange: { type: import_genai.Type.STRING, description: "e.g. 12:00 PM - 02:00 PM" },
-                  intensity: { type: import_genai.Type.STRING, description: "Low, Medium, High, Critical" },
-                  description: { type: import_genai.Type.STRING, description: "What is happening during this peak (e.g. Lunch rush, cocktail hours)" }
+                  timeRange: { type: Type.STRING, description: "e.g. 12:00 PM - 02:00 PM" },
+                  intensity: { type: Type.STRING, description: "Low, Medium, High, Critical" },
+                  description: { type: Type.STRING, description: "What is happening during this peak (e.g. Lunch rush, cocktail hours)" }
                 }
               }
             },
             scheduleSuggestions: {
-              type: import_genai.Type.ARRAY,
+              type: Type.ARRAY,
               description: "The suggested shift assignments for each member of the staff roster",
               items: {
-                type: import_genai.Type.OBJECT,
+                type: Type.OBJECT,
                 required: ["staffId", "staffName", "role", "suggestedShift", "reason"],
                 properties: {
-                  staffId: { type: import_genai.Type.STRING },
-                  staffName: { type: import_genai.Type.STRING },
-                  role: { type: import_genai.Type.STRING },
-                  suggestedShift: { type: import_genai.Type.STRING, description: "e.g. 04:00 PM - 12:00 AM" },
-                  reason: { type: import_genai.Type.STRING, description: "Specific, professional reason for this assignment based on role and rating" }
+                  staffId: { type: Type.STRING },
+                  staffName: { type: Type.STRING },
+                  role: { type: Type.STRING },
+                  suggestedShift: { type: Type.STRING, description: "e.g. 04:00 PM - 12:00 AM" },
+                  reason: { type: Type.STRING, description: "Specific, professional reason for this assignment based on role and rating" }
                 }
               }
             },
             capacityCoverage: {
-              type: import_genai.Type.ARRAY,
+              type: Type.ARRAY,
               description: "The analyzed coverage levels across standard shift blocks",
               items: {
-                type: import_genai.Type.OBJECT,
+                type: Type.OBJECT,
                 required: ["shiftName", "staffCount", "coverageLevel"],
                 properties: {
-                  shiftName: { type: import_genai.Type.STRING, description: "e.g. Morning, Day, Evening" },
-                  staffCount: { type: import_genai.Type.NUMBER, description: "Number of staff members assigned to this shift" },
-                  coverageLevel: { type: import_genai.Type.STRING, description: "e.g. Understaffed, Optimal, Robust" }
+                  shiftName: { type: Type.STRING, description: "e.g. Morning, Day, Evening" },
+                  staffCount: { type: Type.NUMBER, description: "Number of staff members assigned to this shift" },
+                  coverageLevel: { type: Type.STRING, description: "e.g. Understaffed, Optimal, Robust" }
                 }
               }
             },
             executiveSummary: {
-              type: import_genai.Type.STRING,
+              type: Type.STRING,
               description: "Strategic overview explanation of how this layout maximizes profit, speed, and lowers cost"
             }
           }
@@ -1940,10 +1917,10 @@ async function startServer() {
     app.use(vite.middlewares);
     console.log("Vite development middleware mounted.");
   } else {
-    const distPath = import_path2.default.join(process.cwd(), "dist");
-    app.use(import_express.default.static(distPath));
+    const distPath = path2.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(import_path2.default.join(distPath, "index.html"));
+      res.sendFile(path2.join(distPath, "index.html"));
     });
     console.log("Serving compiled production assets.");
   }
@@ -1958,11 +1935,13 @@ if (!process.env.VERCEL) {
 }
 
 // api/index.ts
-var handler = (req, res) => {
+function handler(req, res) {
   return new Promise((resolve) => {
     res.on("finish", resolve);
     res.on("close", resolve);
     server_default(req, res);
   });
+}
+export {
+  handler as default
 };
-module.exports = handler;
