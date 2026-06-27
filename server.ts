@@ -323,9 +323,6 @@ app.post("/api/reset", async (req, res) => {
 
 // Start Vite dev server or serve production build
 async function startServer() {
-  // Initialize and seed database
-  await initDb();
-
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -347,4 +344,13 @@ async function startServer() {
   });
 }
 
-startServer();
+// Export app instance for serverless environments (like Vercel)
+export default app;
+
+// Asynchronously initialize database
+initDb().catch(err => console.error("Database initialization failed:", err));
+
+// Start local server if not running on Vercel
+if (!process.env.VERCEL) {
+  startServer();
+}
