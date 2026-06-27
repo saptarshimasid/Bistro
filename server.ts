@@ -3,7 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
-import { initDb, loadAllData, saveDataKey } from "./db";
+import { initDb, loadAllData, saveDataKey, resetDb } from "./db";
 
 dotenv.config();
 
@@ -306,6 +306,17 @@ app.post("/api/save", async (req, res) => {
   } catch (error: any) {
     console.error(`Failed to save data for key ${key}:`, error);
     res.status(500).json({ error: `Failed to save data for key ${key}`, details: error?.message });
+  }
+});
+
+// API: Reset all system database values to defaults
+app.post("/api/reset", async (req, res) => {
+  try {
+    await resetDb();
+    res.json({ success: true, message: "System database successfully reset to default values." });
+  } catch (error: any) {
+    console.error("Failed to reset database:", error);
+    res.status(500).json({ error: "Failed to reset database", details: error?.message });
   }
 });
 

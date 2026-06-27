@@ -566,3 +566,36 @@ export async function saveDataKey(key: string, data: any) {
     client.release();
   }
 }
+
+export async function resetDb() {
+  if (!pool) {
+    const defaults = getFallbackDefaults();
+    writeFallbackFile(defaults);
+    console.log("Fallback JSON database reset to default values.");
+    return;
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DELETE FROM menu_items');
+    await client.query('DELETE FROM tables');
+    await client.query('DELETE FROM orders');
+    await client.query('DELETE FROM reservations');
+    await client.query('DELETE FROM inventory_items');
+    await client.query('DELETE FROM staff_members');
+    await client.query('DELETE FROM live_activities');
+    await client.query('DELETE FROM system_settings');
+    await client.query('DELETE FROM customer_feedbacks');
+    await client.query('COMMIT');
+
+    console.log("Database cleared for reset.");
+    await initDb();
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error("Error resetting database:", err);
+    throw err;
+  } finally {
+    client.release();
+  }
+}

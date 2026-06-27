@@ -632,7 +632,7 @@ export default function App() {
   };
 
   // Reset database values back to defaults
-  const handleResetSystemData = () => {
+  const handleResetSystemData = async () => {
     localStorage.removeItem('dineflow_tables');
     localStorage.removeItem('dineflow_orders');
     localStorage.removeItem('dineflow_reservations');
@@ -645,6 +645,13 @@ export default function App() {
     localStorage.removeItem('dineflow_currentTab');
     localStorage.removeItem('dineflow_themeStyle');
     localStorage.removeItem('dineflow_feedbacks');
+
+    try {
+      // Call the server API to reset the database/JSON file to seed defaults
+      await fetch('/api/reset', { method: 'POST' });
+    } catch (err) {
+      console.error("Failed to reset database on server:", err);
+    }
 
     logActivity('staff', `System database purge requested. Re-instating seed configuration...`, 'danger');
     
