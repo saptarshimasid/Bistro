@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "vite build",
+  "buildCommand": "vite build && node build-api.mjs",
   "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.ts"
+      "destination": "/api/index.js"
     }
   ]
 }
