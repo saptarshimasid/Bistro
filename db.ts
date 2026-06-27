@@ -234,6 +234,9 @@ export async function initDb() {
   }
 
   const client = await pool.connect();
+  client.on('error', (err) => {
+    console.error('Database client error during initDb:', err);
+  });
   try {
     // Create tables
     await client.query(`
@@ -485,6 +488,9 @@ export async function loadAllData() {
   }
 
   const client = await pool.connect();
+  client.on('error', (err) => {
+    console.error('Database client error during loadAllData:', err);
+  });
   try {
     const menuItems = await client.query('SELECT * FROM menu_items');
     const tables = await client.query('SELECT * FROM tables ORDER BY number ASC');
@@ -537,6 +543,9 @@ export async function saveDataKey(key: string, data: any) {
   }
 
   const client = await pool.connect();
+  client.on('error', (err) => {
+    console.error('Database client error during saveDataKey:', err);
+  });
   try {
     await client.query('BEGIN');
 
@@ -652,6 +661,9 @@ export async function resetDb() {
   }
 
   const client = await pool.connect();
+  client.on('error', (err) => {
+    console.error('Database client error during resetDb:', err);
+  });
   try {
     await client.query('BEGIN');
     await client.query('DELETE FROM menu_items');
