@@ -1992,7 +1992,6 @@ async function resetDb() {
     await client.query("DELETE FROM customer_feedbacks");
     await client.query("COMMIT");
     console.log("Database cleared for reset.");
-    await initDb();
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Error resetting database:", err);
@@ -2000,6 +1999,7 @@ async function resetDb() {
   } finally {
     client.release();
   }
+  await initDb();
 }
 
 // server.ts
