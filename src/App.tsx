@@ -136,7 +136,7 @@ export default function App() {
 
   // Load data from the server database on page mount
   useEffect(() => {
-    fetch('/api/data')
+    fetch(`/api/data?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         if (data.menuItems) setMenuItems(data.menuItems);
@@ -265,26 +265,24 @@ export default function App() {
 
   // Table status updating
   const handleUpdateTable = (tableId: string, updates: Partial<Table>) => {
-    setTables((prev) => {
-      const next = prev.map((t) => {
-        if (t.id === tableId) {
-          const merged = { ...t, ...updates };
-          
-          // Log operational changes
-          if (updates.status && updates.status !== t.status) {
-            logActivity(
-              'table', 
-              `Table ${t.number} status modified from ${t.status} to ${updates.status}.`, 
-              updates.status === 'Cleaning' ? 'warning' : 'info'
-            );
-          }
-          return merged;
-        }
-        return t;
-      });
-      saveData('tables', next);
-      return next;
+    let oldTable: Table | undefined;
+    const next = tables.map((t) => {
+      if (t.id === tableId) {
+        oldTable = t;
+        return { ...t, ...updates };
+      }
+      return t;
     });
+    setTables(next);
+    saveData('tables', next);
+    
+    if (oldTable && updates.status && updates.status !== oldTable.status) {
+      logActivity(
+        'table', 
+        `Table ${oldTable.number} status modified from ${oldTable.status} to ${updates.status}.`, 
+        updates.status === 'Cleaning' ? 'warning' : 'info'
+      );
+    }
   };
 
   // Order routing transition shortcut
@@ -299,62 +297,60 @@ export default function App() {
 
   // Kitchen order status tracking
   const handleUpdateOrderStatus = (orderId: string, nextStatus: OrderStatus) => {
-    setOrders((prev) => {
-      const next = prev.map((o) => {
-        if (o.id === orderId) {
-          const updated = { ...o, status: nextStatus, updatedAt: new Date().toISOString() };
-          
-          // Log transitions
-          if (nextStatus === 'Preparing') {
-            logActivity('order', `Order ticket ${o.orderNumber} (Table ${o.tableNumber}) is now cooking.`, 'info');
-          } else if (nextStatus === 'Ready') {
-            logActivity('order', `Order ticket ${o.orderNumber} (Table ${o.tableNumber}) marked ready for pickup.`, 'success');
-          } else if (nextStatus === 'Served') {
-            logActivity('order', `Order ticket ${o.orderNumber} (Table ${o.tableNumber}) served to seated guest.`, 'success');
-          }
-          return updated;
-        }
-        return o;
-      });
-      saveData('orders', next);
-      return next;
+    let orderNum = '';
+    let tableNum = 0;
+    const next = orders.map((o) => {
+      if (o.id === orderId) {
+        orderNum = o.orderNumber;
+        tableNum = o.tableNumber;
+        return { ...o, status: nextStatus, updatedAt: new Date().toISOString() };
+      }
+      return o;
     });
+    setOrders(next);
+    saveData('orders', next);
+    
+    if (orderNum) {
+      if (nextStatus === 'Preparing') {
+        logActivity('order', `Order ticket ${orderNum} (Table ${tableNum}) is now cooking.`, 'info');
+      } else if (nextStatus === 'Ready') {
+        logActivity('order', `Order ticket ${orderNum} (Table ${tableNum}) marked ready for pickup.`, 'success');
+      } else if (nextStatus === 'Served') {
+        logActivity('order', `Order ticket ${orderNum} (Table ${tableNum}) served to seated guest.`, 'success');
+      }
+    }
   };
 
   // Pay out settlement
   const handlePayOrder = (orderId: string, paymentMethod: 'Cash' | 'Card' | 'UPI' | 'Wallet') => {
     let targetedTableNum = 0;
     
-    setOrders((prevOrders) => {
-      const nextOrders = prevOrders.map((o) => {
-        if (o.id === orderId) {
-          targetedTableNum = o.tableNumber;
-          return { ...o, status: 'Paid' as OrderStatus, paymentMethod, updatedAt: new Date().toISOString() };
-        }
-        return o;
-      });
-      saveData('orders', nextOrders);
-      return nextOrders;
+    const nextOrders = orders.map((o) => {
+      if (o.id === orderId) {
+        targetedTableNum = o.tableNumber;
+        return { ...o, status: 'Paid' as OrderStatus, paymentMethod, updatedAt: new Date().toISOString() };
+      }
+      return o;
     });
+    setOrders(nextOrders);
+    saveData('orders', nextOrders);
 
     // Update physical Seating table status to Cleaning, clearing guest variables
     if (targetedTableNum > 0) {
-      setTables((prevTables) => {
-        const nextTables = prevTables.map((t) => {
-          if (t.number === targetedTableNum) {
-            return {
-              ...t,
-              status: 'Cleaning' as const,
-              currentOrderId: undefined,
-              customerName: undefined,
-              guestsCount: undefined
-            };
-          }
-          return t;
-        });
-        saveData('tables', nextTables);
-        return nextTables;
+      const nextTables = tables.map((t) => {
+        if (t.number === targetedTableNum) {
+          return {
+            ...t,
+            status: 'Cleaning' as const,
+            currentOrderId: undefined,
+            customerName: undefined,
+            guestsCount: undefined
+          };
+        }
+        return t;
       });
+      setTables(nextTables);
+      saveData('tables', nextTables);
 
       logActivity(
         'order', 
@@ -379,29 +375,25 @@ export default function App() {
       updatedAt: new Date().toISOString()
     };
 
-    setOrders((prev) => {
-      const next = [newOrder, ...prev];
-      saveData('orders', next);
-      return next;
-    });
+    const nextOrders = [newOrder, ...orders];
+    setOrders(nextOrders);
+    saveData('orders', nextOrders);
 
     // Mark Seating table status as Occupied and hook order details
-    setTables((prevTables) => {
-      const nextTables = prevTables.map((t) => {
-        if (t.number === newOrder.tableNumber) {
-          return {
-            ...t,
-            status: 'Occupied' as const,
-            currentOrderId: orderId,
-            customerName: newOrderOmit.customerName || 'Walk-In Guest',
-            guestsCount: newOrderOmit.items.reduce((sum, item) => sum + item.quantity, 0)
-          };
-        }
-        return t;
-      });
-      saveData('tables', nextTables);
-      return nextTables;
+    const nextTables = tables.map((t) => {
+      if (t.number === newOrder.tableNumber) {
+        return {
+          ...t,
+          status: 'Occupied' as const,
+          currentOrderId: orderId,
+          customerName: newOrderOmit.customerName || 'Walk-In Guest',
+          guestsCount: newOrderOmit.items.reduce((sum, item) => sum + item.quantity, 0)
+        };
+      }
+      return t;
     });
+    setTables(nextTables);
+    saveData('tables', nextTables);
 
     logActivity('order', `New dining order ticket ${orderNum} created for Table ${newOrder.tableNumber}.`, 'info');
   };
@@ -415,50 +407,49 @@ export default function App() {
       createdAt: new Date().toISOString()
     };
 
-    setReservations((prev) => {
-      const next = [newRes, ...prev];
-      saveData('reservations', next);
-      return next;
-    });
+    const next = [newRes, ...reservations];
+    setReservations(next);
+    saveData('reservations', next);
 
     logActivity('reservation', `Booking confirmed for ${newRes.customerName} (Party of ${newRes.guests}) on ${newRes.date}.`, 'success');
   };
 
   const handleUpdateReservationStatus = (resId: string, status: 'Confirmed' | 'Pending' | 'Cancelled') => {
-    setReservations((prev) => {
-      const next = prev.map((r) => {
-        if (r.id === resId) {
-          logActivity(
-            'reservation', 
-            `Reservation booking for ${r.customerName} marked as ${status.toUpperCase()}.`, 
-            status === 'Cancelled' ? 'danger' : 'success'
-          );
-          return { ...r, status };
-        }
-        return r;
-      });
-      saveData('reservations', next);
-      return next;
+    let name = '';
+    const next = reservations.map((r) => {
+      if (r.id === resId) {
+        name = r.customerName;
+        return { ...r, status };
+      }
+      return r;
     });
+    setReservations(next);
+    saveData('reservations', next);
+
+    if (name) {
+      logActivity(
+        'reservation', 
+        `Reservation booking for ${name} marked as ${status.toUpperCase()}.`, 
+        status === 'Cancelled' ? 'danger' : 'success'
+      );
+    }
   };
 
   const handleSeatReservedGuest = (customerName: string, guestsCount: number, prefTableNumber: number) => {
     // Find table matching preferred number, and sit them down
-    setTables((prevTables) => {
-      const nextTables = prevTables.map((t) => {
-        if (t.number === prefTableNumber) {
-          return {
-            ...t,
-            status: 'Occupied' as const,
-            customerName,
-            guestsCount
-          };
-        }
-        return t;
-      });
-      saveData('tables', nextTables);
-      return nextTables;
+    const nextTables = tables.map((t) => {
+      if (t.number === prefTableNumber) {
+        return {
+          ...t,
+          status: 'Occupied' as const,
+          customerName,
+          guestsCount
+        };
+      }
+      return t;
     });
+    setTables(nextTables);
+    saveData('tables', nextTables);
 
     logActivity('table', `Reserved booking guest ${customerName} seated at Table ${prefTableNumber}. Creating ticket.`, 'success');
     
@@ -469,44 +460,45 @@ export default function App() {
 
   // Culinary Menu editing
   const handleAddMenuItem = (item: MenuItem) => {
-    setMenuItems((prev) => {
-      const next = [...prev, item];
-      saveData('menu', next);
-      return next;
-    });
+    const next = [...menuItems, item];
+    setMenuItems(next);
+    saveData('menu', next);
     logActivity('inventory', `Gourmet dish "${item.name}" registered into restaurant catalog database.`, 'success');
   };
 
   const handleUpdateMenuItem = (id: string, updates: Partial<MenuItem>) => {
-    setMenuItems((prev) => {
-      const next = prev.map((m) => {
-        if (m.id === id) {
-          const merged = { ...m, ...updates };
-          if (updates.available !== undefined && updates.available !== m.available) {
-            logActivity(
-              'inventory', 
-              `Dishes "${m.name}" availability set to ${updates.available ? 'AVAILABLE' : 'SOLD OUT'}.`, 
-              updates.available ? 'success' : 'warning'
-            );
-          }
-          return merged;
-        }
-        return m;
-      });
-      saveData('menu', next);
-      return next;
+    let name = '';
+    let oldAvailable = true;
+    const next = menuItems.map((m) => {
+      if (m.id === id) {
+        name = m.name;
+        oldAvailable = m.available;
+        const merged = { ...m, ...updates };
+        return merged;
+      }
+      return m;
     });
+    setMenuItems(next);
+    saveData('menu', next);
+
+    if (name && updates.available !== undefined && updates.available !== oldAvailable) {
+      logActivity(
+        'inventory', 
+        `Dishes "${name}" availability set to ${updates.available ? 'AVAILABLE' : 'SOLD OUT'}.`, 
+        updates.available ? 'success' : 'warning'
+      );
+    }
   };
 
   const handleDeleteMenuItem = (id: string) => {
     let itemName = '';
-    setMenuItems((prev) => {
-      const item = prev.find((m) => m.id === id);
-      itemName = item?.name || '';
-      const next = prev.filter((m) => m.id !== id);
-      saveData('menu', next);
-      return next;
-    });
+    const item = menuItems.find((m) => m.id === id);
+    itemName = item?.name || '';
+    const next = menuItems.filter((m) => m.id !== id);
+    
+    setMenuItems(next);
+    saveData('menu', next);
+
     if (itemName) {
       logActivity('inventory', `Dish "${itemName}" retired from restaurant catalog.`, 'danger');
     }
@@ -514,79 +506,85 @@ export default function App() {
 
   // Inventory Stock restocking
   const handleRestockItem = (itemId: string, amount: number) => {
-    setInventory((prev) => {
-      const next = prev.map((i) => {
-        if (i.id === itemId) {
-          const nextStock = i.currentStock + amount;
-          logActivity('inventory', `Restocked raw stock of "${i.name}" by +${amount} ${i.unit}. Stock volume: ${nextStock} ${i.unit}.`, 'success');
-          return { ...i, currentStock: nextStock };
-        }
-        return i;
-      });
-      saveData('inventory', next);
-      return next;
+    let itemName = '';
+    let nextStock = 0;
+    let unit = '';
+    const next = inventory.map((i) => {
+      if (i.id === itemId) {
+        nextStock = i.currentStock + amount;
+        itemName = i.name;
+        unit = i.unit;
+        return { ...i, currentStock: nextStock };
+      }
+      return i;
     });
+    setInventory(next);
+    saveData('inventory', next);
+    
+    if (itemName) {
+      logActivity('inventory', `Restocked raw stock of "${itemName}" by +${amount} ${unit}. Stock volume: ${nextStock} ${unit}.`, 'success');
+    }
   };
 
   const handleAddInventoryItem = (item: InventoryItem) => {
-    setInventory((prev) => {
-      const next = [...prev, item];
-      saveData('inventory', next);
-      return next;
-    });
+    const next = [...inventory, item];
+    setInventory(next);
+    saveData('inventory', next);
     logActivity('inventory', `Raw supplier item "${item.name}" registered into inventory list.`, 'info');
   };
 
   // Staff roster adjustments
   const handleUpdateStaffAttendance = (staffId: string, status: 'Present' | 'Absent' | 'On Leave') => {
-    setStaff((prev) => {
-      const next = prev.map((s) => {
-        if (s.id === staffId) {
-          logActivity('staff', `Employee ${s.name} attendance logged as: ${status.toUpperCase()}.`, 'info');
-          return { ...s, attendanceStatus: status };
-        }
-        return s;
-      });
-      saveData('staff', next);
-      return next;
+    let name = '';
+    const next = staff.map((s) => {
+      if (s.id === staffId) {
+        name = s.name;
+        return { ...s, attendanceStatus: status };
+      }
+      return s;
     });
+    setStaff(next);
+    saveData('staff', next);
+
+    if (name) {
+      logActivity('staff', `Employee ${name} attendance logged as: ${status.toUpperCase()}.`, 'info');
+    }
   };
 
   const handleUpdateStaffShiftTiming = (staffId: string, shiftTiming: string) => {
-    setStaff((prev) => {
-      const next = prev.map((s) => {
-        if (s.id === staffId) {
-          logActivity('staff', `Employee ${s.name} shift updated to: ${shiftTiming}.`, 'info');
-          return { ...s, shiftTiming };
-        }
-        return s;
-      });
-      saveData('staff', next);
-      return next;
+    let name = '';
+    const next = staff.map((s) => {
+      if (s.id === staffId) {
+        name = s.name;
+        return { ...s, shiftTiming };
+      }
+      return s;
     });
+    setStaff(next);
+    saveData('staff', next);
+
+    if (name) {
+      logActivity('staff', `Employee ${name} shift updated to: ${shiftTiming}.`, 'info');
+    }
   };
 
   const handleBulkUpdateStaffShifts = (shifts: { staffId: string; suggestedShift: string }[]) => {
-    setStaff((prev) => {
-      const next = prev.map((s) => {
-        const match = shifts.find((sh) => sh.staffId === s.id);
-        if (match) {
-          return { ...s, shiftTiming: match.suggestedShift };
-        }
-        return s;
-      });
-      saveData('staff', next);
-      return next;
+    const next = staff.map((s) => {
+      const match = shifts.find((sh) => sh.staffId === s.id);
+      if (match) {
+        return { ...s, shiftTiming: match.suggestedShift };
+      }
+      return s;
     });
+    setStaff(next);
+    saveData('staff', next);
     logActivity('staff', `Applied smart predictive scheduling to active roster.`, 'success');
   };
 
   const handleAddStaffMember = (member: StaffMember) => {
-    setStaff((prev) => {
-      const next = [...prev, member];
-      saveData('staff', next);
-      return next;
-    });
+    const next = [...staff, member];
+    setStaff(next);
+    saveData('staff', next);
     logActivity('staff', `Registered new team roster: ${member.name} as ${member.role}.`, 'success');
   };
 
@@ -605,29 +603,23 @@ export default function App() {
       id: `fb_${Date.now()}_${randomId}`,
       createdAt: new Date().toISOString()
     };
-    setFeedbacks((prev) => {
-      const next = [completedFb, ...prev];
-      saveData('feedbacks', next);
-      return next;
-    });
+    const next = [completedFb, ...feedbacks];
+    setFeedbacks(next);
+    saveData('feedbacks', next);
     logActivity('staff', `New customer feedback submitted by ${newFb.customerName} (${newFb.rating}★).`, 'success');
   };
 
   const handleUpdateFeedbackStatus = (id: string, status: CustomerFeedback['status']) => {
-    setFeedbacks((prev) => {
-      const next = prev.map((f) => f.id === id ? { ...f, status } : f);
-      saveData('feedbacks', next);
-      return next;
-    });
+    const next = feedbacks.map((f) => f.id === id ? { ...f, status } : f);
+    setFeedbacks(next);
+    saveData('feedbacks', next);
     logActivity('staff', `Feedback status updated to ${status}.`, 'info');
   };
 
   const handleDeleteFeedback = (id: string) => {
-    setFeedbacks((prev) => {
-      const next = prev.filter((f) => f.id !== id);
-      saveData('feedbacks', next);
-      return next;
-    });
+    const next = feedbacks.filter((f) => f.id !== id);
+    setFeedbacks(next);
+    saveData('feedbacks', next);
     logActivity('staff', `Customer feedback entry removed.`, 'warning');
   };
 
@@ -675,11 +667,9 @@ export default function App() {
 
   // Notifications drawer popover triggers
   const handleMarkActivityRead = (id: string) => {
-    setActivities((prev) => {
-      const next = prev.filter((a) => a.id !== id);
-      saveData('activities', next);
-      return next;
-    });
+    const next = activities.filter((a) => a.id !== id);
+    setActivities(next);
+    saveData('activities', next);
   };
 
   const handleClearActivities = () => {

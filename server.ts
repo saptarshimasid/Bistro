@@ -287,6 +287,7 @@ app.post("/api/ai/smart-schedule", async (req, res) => {
 app.get("/api/data", async (req, res) => {
   try {
     const data = await loadAllData();
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.json(data);
   } catch (error: any) {
     console.error("Failed to load restaurant data:", error);
