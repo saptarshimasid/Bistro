@@ -1,0 +1,6 @@
+{
+  "name": "DineFlow RMS",
+  "description": "DineFlow RMS is a premium, animated Restaurant Management System dashboard featuring role-based logins, table maps, live order workflows, menu, reservation, inventory, billing, KDS, and robust analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
