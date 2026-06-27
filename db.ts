@@ -487,10 +487,28 @@ export async function loadAllData() {
     };
   }
 
-  const client = await pool.connect();
-  client.on('error', (err) => {
-    console.error('Database client error during loadAllData:', err);
-  });
+  let client;
+  try {
+    client = await pool.connect();
+    client.on('error', (err) => {
+      console.error('Database client error during loadAllData:', err);
+    });
+  } catch (connErr) {
+    console.error("Error connecting to database, falling back to local file:", connErr);
+    const fallback = readFallbackFile();
+    return {
+      menuItems: fallback.menu,
+      tables: fallback.tables,
+      orders: fallback.orders,
+      reservations: fallback.reservations,
+      inventory: fallback.inventory,
+      staff: fallback.staff,
+      activities: fallback.activities,
+      settings: fallback.settings,
+      feedbacks: fallback.feedbacks
+    };
+  }
+
   try {
     const menuItems = await client.query('SELECT * FROM menu_items');
     const tables = await client.query('SELECT * FROM tables ORDER BY number ASC');
