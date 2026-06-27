@@ -33,6 +33,9 @@ if (connectionString) {
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 10000
     });
+    pool.on('error', (err) => {
+      console.error('Unexpected error on idle client or pool:', err);
+    });
   } catch (poolErr) {
     console.error("Failed to initialize PostgreSQL pool:", poolErr);
     pool = null;
