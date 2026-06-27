@@ -1,12 +1,23 @@
-import { loadAllData } from "../db";
-
-export default async function handler(req: any, res: any) {
-  try {
-    const data = await loadAllData();
-    res.setHeader("Content-Type", "application/json");
-    res.status(200).send(JSON.stringify(data, null, 2));
-  } catch (error: any) {
-    res.setHeader("Content-Type", "text/plain");
-    res.status(500).send(`Crash in manual fetch: ${error.message}\n${error.stack}`);
+export default function handler(req: any, res: any) {
+  res.setHeader("Content-Type", "application/json");
+  const env: any = {};
+  for (const key in process.env) {
+    if (
+      key.includes("POSTGRES") || 
+      key.includes("DATABASE") || 
+      key.includes("VERCEL") || 
+      key.includes("NODE")
+    ) {
+      let val = process.env[key] || "";
+      if (val.includes("://")) {
+        // Redact password in connection string
+        val = val.replace(/:([^:@]+)@/, ":***@");
+      }
+      env[key] = val;
+    }
   }
+  res.status(200).send(JSON.stringify({
+    message: "Env vars checked successfully",
+    env
+  }, null, 2));
 }
