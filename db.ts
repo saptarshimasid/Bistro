@@ -61,7 +61,11 @@ const getFallbackDefaults = (): FallbackData => ({
 function readFallbackFile(): FallbackData {
   if (!fs.existsSync(FALLBACK_FILE)) {
     const defaults = getFallbackDefaults();
-    fs.writeFileSync(FALLBACK_FILE, JSON.stringify(defaults, null, 2));
+    try {
+      fs.writeFileSync(FALLBACK_FILE, JSON.stringify(defaults, null, 2));
+    } catch (writeErr) {
+      console.warn("Failed to write fallback default file (possibly read-only filesystem):", writeErr);
+    }
     return defaults;
   }
   try {
