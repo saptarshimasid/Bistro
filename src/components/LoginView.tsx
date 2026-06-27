@@ -67,7 +67,7 @@ export default function LoginView({ onLogin, settings }: LoginViewProps) {
       
       const userProfile: UserProfile = {
         id: matchingStaff?.id || `u_${selectedRole.toLowerCase()}`,
-        name: matchingStaff?.name || `Demo ${selectedRole}`,
+        name: matchingStaff?.name || (selectedRole === 'Admin' ? 'Saptarshi Masid' : `Demo ${selectedRole}`),
         role: selectedRole,
         email: email,
         avatar: matchingStaff?.image || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',

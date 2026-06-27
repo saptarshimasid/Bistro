@@ -68,8 +68,25 @@ export default function App() {
     return loadData<string>('currentTab', 'dashboard');
   });
 
-  // Collapsible state for sidebar
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  // Collapsible state for sidebar (collapsed by default on mobile width < 768)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  // Automatically collapse sidebar on resize if screen becomes mobile size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsCollapsed(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize(); // run once on mount
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Theme Style (gold vs platinum)
   const [themeStyle, setThemeStyle] = useState<'gold' | 'platinum'>(() => {
@@ -125,6 +142,15 @@ export default function App() {
   const [isPreviewPublicMenu, setIsPreviewPublicMenu] = useState<boolean>(() => {
     return window.location.search.includes('view=public-menu');
   });
+
+  // Migration: Automatically update cached 'Demo Admin' sessions to 'Saptarshi Masid'
+  useEffect(() => {
+    if (user && user.role === 'Admin' && user.name === 'Demo Admin') {
+      const updatedUser = { ...user, name: 'Saptarshi Masid' };
+      setUser(updatedUser);
+      saveData('user', updatedUser);
+    }
+  }, [user]);
 
   // URL checking effect to handle back/forward routing
   useEffect(() => {
@@ -854,7 +880,7 @@ export default function App() {
             <div className="absolute inset-2 border border-dashed border-orange-500/20 border-b-orange-500 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}></div>
             {/* Percentage / Monogram */}
             <div className="flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold font-serif text-amber-500 select-none">B</span>
+              <span className="text-3xl font-extrabold font-display text-amber-500 select-none tracking-tight">B</span>
               <span className="text-xs font-mono text-zinc-400 mt-1 select-none">{loadProgress}%</span>
             </div>
           </div>

@@ -70,7 +70,7 @@ export default function Navbar({
   const roles: UserRole[] = ['Admin', 'Manager', 'Chef', 'Waiter', 'Cashier'];
 
   return (
-    <header className="h-16 shrink-0 glass-navbar flex items-center justify-between px-6 z-10 relative font-sans">
+    <header className="h-16 shrink-0 glass-navbar flex items-center justify-between px-6 z-30 relative font-sans">
       {/* Title & Description */}
       <div className="flex flex-col text-left">
         <h2 className="text-base font-bold text-white font-display tracking-tight flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function Navbar({
           </button>
 
           {showRoleSelector && (
-            <div className="absolute right-0 mt-2 w-48 bg-[#0e0e11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 py-1.5 text-left">
+            <div className="absolute right-0 mt-2 w-48 max-w-[calc(100vw-2rem)] bg-[#0e0e11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 py-1.5 text-left">
               <div className="px-3 py-1.5 border-b border-white/5 mb-1">
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider font-sans">
                   Impersonate Sandbox Role
@@ -161,17 +161,19 @@ export default function Navbar({
               setShowNotifications(!showNotifications);
               setShowRoleSelector(false);
             }}
-            className="p-2 bg-[#121215] border border-white/5 hover:border-white/10 rounded-xl text-gray-300 hover:text-white relative cursor-pointer"
+            className="p-2 bg-[#121215] border border-white/5 hover:border-white/10 rounded-xl text-gray-300 hover:text-white relative cursor-pointer flex items-center justify-center"
             title="Restaurant Live Feed"
           >
             <Bell className="w-4 h-4" />
             {activities.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-orange-500 animate-pulse glow-orange" />
+              <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-[16px] px-1 bg-gradient-to-r from-orange-500 to-amber-500 text-[8px] font-bold text-white rounded-full flex items-center justify-center border border-[#121215] shadow-[0_2px_4px_rgba(249,115,22,0.4)] animate-bounce">
+                {activities.length}
+              </span>
             )}
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 md:w-96 bg-[#0e0e11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 flex flex-col text-left">
+            <div className="absolute right-0 mt-2 w-80 md:w-96 max-w-[calc(100vw-2rem)] bg-[#0e0e11] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-30 flex flex-col text-left">
               <div className="p-3.5 border-b border-white/5 bg-[#121216] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Bell className="w-4 h-4 text-gold-500" />
