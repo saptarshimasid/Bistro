@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "allowJs": true,
+    "paths": {
+      "@/*": ["../*"]
+    }
+  },
+  "include": ["./**/*.ts", "../server.ts", "../db.ts", "../src/data/mockData.ts", "../src/types.ts"]
+}
