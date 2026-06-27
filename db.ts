@@ -2,17 +2,30 @@ import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-import { 
-  INITIAL_MENU_ITEMS, 
-  INITIAL_TABLES, 
-  INITIAL_ORDERS, 
-  INITIAL_RESERVATIONS, 
-  INITIAL_INVENTORY, 
-  INITIAL_STAFF, 
-  INITIAL_ACTIVITIES, 
-  DEFAULT_SETTINGS, 
-  INITIAL_FEEDBACK 
-} from './src/data/mockData';
+
+// Read static defaults from JSON file instead of browser-dependent mockData.ts
+function readDefaultsJson(): any {
+  try {
+    const filePath = path.join(process.cwd(), 'src/data/mockDataDefaults.json');
+    const content = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    console.error("Failed to read mockDataDefaults.json, returning empty defaults:", err);
+    return {
+      menu: [],
+      tables: [],
+      orders: [],
+      reservations: [],
+      inventory: [],
+      staff: [],
+      activities: [],
+      settings: {},
+      feedback: []
+    };
+  }
+}
+
+const defaults = readDefaultsJson();
 
 dotenv.config();
 
@@ -68,15 +81,15 @@ interface FallbackData {
 }
 
 const getFallbackDefaults = (): FallbackData => ({
-  menu: INITIAL_MENU_ITEMS,
-  tables: INITIAL_TABLES,
-  orders: INITIAL_ORDERS,
-  reservations: INITIAL_RESERVATIONS,
-  inventory: INITIAL_INVENTORY,
-  staff: INITIAL_STAFF,
-  activities: INITIAL_ACTIVITIES,
-  settings: DEFAULT_SETTINGS,
-  feedbacks: INITIAL_FEEDBACK,
+  menu: defaults.menu,
+  tables: defaults.tables,
+  orders: defaults.orders,
+  reservations: defaults.reservations,
+  inventory: defaults.inventory,
+  staff: defaults.staff,
+  activities: defaults.activities,
+  settings: defaults.settings,
+  feedbacks: defaults.feedback,
 });
 
 function readFallbackFile(): FallbackData {
@@ -360,7 +373,7 @@ export async function initDb() {
     const menuCountRes = await client.query('SELECT COUNT(*) FROM menu_items');
     if (parseInt(menuCountRes.rows[0].count) === 0) {
       console.log("Seeding menu_items...");
-      for (const item of INITIAL_MENU_ITEMS) {
+      for (const item of defaults.menu) {
         await client.query(
           `INSERT INTO menu_items (id, name, price, description, category, image, available, "preparationTime")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -373,7 +386,7 @@ export async function initDb() {
     const tablesCountRes = await client.query('SELECT COUNT(*) FROM tables');
     if (parseInt(tablesCountRes.rows[0].count) === 0) {
       console.log("Seeding tables...");
-      for (const t of INITIAL_TABLES) {
+      for (const t of defaults.tables) {
         await client.query(
           `INSERT INTO tables (id, number, capacity, status, "currentOrderId", "customerName", "guestsCount")
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -386,7 +399,7 @@ export async function initDb() {
     const ordersCountRes = await client.query('SELECT COUNT(*) FROM orders');
     if (parseInt(ordersCountRes.rows[0].count) === 0) {
       console.log("Seeding orders...");
-      for (const o of INITIAL_ORDERS) {
+      for (const o of defaults.orders) {
         await client.query(
           `INSERT INTO orders (id, "orderNumber", "tableNumber", "customerName", items, subtotal, discount, tax, "grandTotal", status, "paymentMethod", "createdAt", "updatedAt", "specialNotes", "waiterId", "waiterName")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
@@ -403,7 +416,7 @@ export async function initDb() {
     const resCountRes = await client.query('SELECT COUNT(*) FROM reservations');
     if (parseInt(resCountRes.rows[0].count) === 0) {
       console.log("Seeding reservations...");
-      for (const r of INITIAL_RESERVATIONS) {
+      for (const r of defaults.reservations) {
         await client.query(
           `INSERT INTO reservations (id, "customerName", phone, date, time, guests, "tablePreference", status, "createdAt")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -416,7 +429,7 @@ export async function initDb() {
     const invCountRes = await client.query('SELECT COUNT(*) FROM inventory_items');
     if (parseInt(invCountRes.rows[0].count) === 0) {
       console.log("Seeding inventory_items...");
-      for (const i of INITIAL_INVENTORY) {
+      for (const i of defaults.inventory) {
         await client.query(
           `INSERT INTO inventory_items (id, name, category, "currentStock", "minimumStock", unit, supplier, "expiryDate", "unitCost")
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -429,7 +442,7 @@ export async function initDb() {
     const staffCountRes = await client.query('SELECT COUNT(*) FROM staff_members');
     if (parseInt(staffCountRes.rows[0].count) === 0) {
       console.log("Seeding staff_members...");
-      for (const s of INITIAL_STAFF) {
+      for (const s of defaults.staff) {
         await client.query(
           `INSERT INTO staff_members (id, name, role, contact, "shiftTiming", "attendanceStatus", "performanceRating", image)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
@@ -442,7 +455,7 @@ export async function initDb() {
     const actCountRes = await client.query('SELECT COUNT(*) FROM live_activities');
     if (parseInt(actCountRes.rows[0].count) === 0) {
       console.log("Seeding live_activities...");
-      for (const a of INITIAL_ACTIVITIES) {
+      for (const a of defaults.activities) {
         await client.query(
           `INSERT INTO live_activities (id, type, message, time, severity)
            VALUES ($1, $2, $3, $4, $5)`,
@@ -457,7 +470,7 @@ export async function initDb() {
       console.log("Seeding system_settings...");
       await client.query(
         `INSERT INTO system_settings (id, value) VALUES ($1, $2)`,
-        ['current', JSON.stringify(DEFAULT_SETTINGS)]
+        ['current', JSON.stringify(defaults.settings)]
       );
     }
 
@@ -465,7 +478,7 @@ export async function initDb() {
     const fbCountRes = await client.query('SELECT COUNT(*) FROM customer_feedbacks');
     if (parseInt(fbCountRes.rows[0].count) === 0) {
       console.log("Seeding customer_feedbacks...");
-      for (const f of INITIAL_FEEDBACK) {
+      for (const f of defaults.feedback) {
         await client.query(
           `INSERT INTO customer_feedbacks (id, "customerName", rating, comment, "waiterId", "waiterName", "createdAt", status, category)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -533,7 +546,7 @@ export async function loadAllData() {
     const settingsRes = await client.query('SELECT value FROM system_settings WHERE id = $1', ['current']);
     const feedbacks = await client.query('SELECT * FROM customer_feedbacks ORDER BY "createdAt" DESC');
 
-    const settings = settingsRes.rows[0]?.value || DEFAULT_SETTINGS;
+    const settings = settingsRes.rows[0]?.value || defaults.settings;
 
     return {
       menuItems: menuItems.rows.map(parseMenu),
