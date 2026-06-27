@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Search, 
   Bell, 
@@ -41,10 +41,27 @@ export default function Navbar({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
 
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const roleSelectorRef = useRef<HTMLDivElement>(null);
+
   // Sync real-time clock
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  // Handle outside clicks to close dropdown menus
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (roleSelectorRef.current && !roleSelectorRef.current.contains(e.target as Node)) {
+        setShowRoleSelector(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   const getTabTitle = (tab: string) => {
@@ -111,7 +128,7 @@ export default function Navbar({
         </button>
 
         {/* Fast Role Swapper Dropdown */}
-        <div className="relative">
+        <div className="relative" ref={roleSelectorRef}>
           <button
             onClick={() => {
               setShowRoleSelector(!showRoleSelector);
@@ -155,7 +172,7 @@ export default function Navbar({
         </div>
 
         {/* Notifications Drawer */}
-        <div className="relative">
+        <div className="relative" ref={notificationsRef}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);

@@ -227,6 +227,100 @@ function parseFeedback(row: any) {
   };
 }
 
+const EXPECTED_SCHEMA: { [tableName: string]: { [columnName: string]: string } } = {
+  menu_items: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    name: 'VARCHAR(255) NOT NULL',
+    price: 'NUMERIC(10, 2) NOT NULL',
+    description: 'TEXT',
+    category: 'VARCHAR(100)',
+    image: 'TEXT',
+    available: 'BOOLEAN DEFAULT true',
+    preparationTime: 'INTEGER DEFAULT 10'
+  },
+  tables: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    number: 'INTEGER UNIQUE NOT NULL',
+    capacity: 'INTEGER NOT NULL',
+    status: 'VARCHAR(50) NOT NULL',
+    currentOrderId: 'VARCHAR(50)',
+    customerName: 'VARCHAR(255)',
+    guestsCount: 'INTEGER'
+  },
+  orders: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    orderNumber: 'VARCHAR(50) UNIQUE NOT NULL',
+    tableNumber: 'INTEGER NOT NULL',
+    customerName: 'VARCHAR(255)',
+    items: 'JSONB NOT NULL',
+    subtotal: 'NUMERIC(10, 2) NOT NULL',
+    discount: 'NUMERIC(5, 2) DEFAULT 0',
+    tax: 'NUMERIC(5, 2) DEFAULT 8',
+    grandTotal: 'NUMERIC(10, 2) NOT NULL',
+    status: 'VARCHAR(50) NOT NULL',
+    paymentMethod: 'VARCHAR(50)',
+    createdAt: 'TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP',
+    updatedAt: 'TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP',
+    specialNotes: 'TEXT',
+    waiterId: 'VARCHAR(50)',
+    waiterName: 'VARCHAR(255)'
+  },
+  reservations: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    customerName: 'VARCHAR(255) NOT NULL',
+    phone: 'VARCHAR(100)',
+    date: 'VARCHAR(20) NOT NULL',
+    time: 'VARCHAR(20) NOT NULL',
+    guests: 'INTEGER NOT NULL',
+    tablePreference: 'VARCHAR(255)',
+    status: 'VARCHAR(50) DEFAULT \'Pending\'',
+    createdAt: 'TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP'
+  },
+  inventory_items: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    name: 'VARCHAR(255) NOT NULL',
+    category: 'VARCHAR(100)',
+    currentStock: 'NUMERIC(10, 2) NOT NULL',
+    minimumStock: 'NUMERIC(10, 2) NOT NULL',
+    unit: 'VARCHAR(50) NOT NULL',
+    supplier: 'VARCHAR(255)',
+    expiryDate: 'VARCHAR(20)',
+    unitCost: 'NUMERIC(10, 2)'
+  },
+  staff_members: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    name: 'VARCHAR(255) NOT NULL',
+    role: 'VARCHAR(100) NOT NULL',
+    contact: 'VARCHAR(100)',
+    shiftTiming: 'VARCHAR(100)',
+    attendanceStatus: 'VARCHAR(50) DEFAULT \'Present\'',
+    performanceRating: 'NUMERIC(3, 2) DEFAULT 5.0',
+    image: 'TEXT'
+  },
+  live_activities: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    type: 'VARCHAR(50) NOT NULL',
+    message: 'TEXT NOT NULL',
+    time: 'VARCHAR(100) NOT NULL',
+    severity: 'VARCHAR(50) DEFAULT \'info\''
+  },
+  system_settings: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    value: 'JSONB NOT NULL'
+  },
+  customer_feedbacks: {
+    id: 'VARCHAR(50) PRIMARY KEY',
+    customerName: 'VARCHAR(255) NOT NULL',
+    rating: 'INTEGER NOT NULL',
+    comment: 'TEXT',
+    waiterId: 'VARCHAR(50)',
+    waiterName: 'VARCHAR(255)',
+    createdAt: 'TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP',
+    status: 'VARCHAR(50) DEFAULT \'Pending\'',
+    category: 'VARCHAR(100)'
+  }
+};
+
 export async function initDb() {
   const activePool = getPool();
   if (!activePool) {
@@ -240,110 +334,30 @@ export async function initDb() {
     console.error('Database client error during initDb:', err);
   });
   try {
-    // Create tables
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS menu_items (
-        id VARCHAR(50) PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        price NUMERIC(10, 2) NOT NULL,
-        description TEXT,
-        category VARCHAR(100),
-        image TEXT,
-        available BOOLEAN DEFAULT true,
-        "preparationTime" INTEGER DEFAULT 10
-      );
+    // Create tables dynamically and run auto-migrations if new columns/tables are added in the future
+    for (const [tableName, columns] of Object.entries(EXPECTED_SCHEMA)) {
+      // 1. Create table with id PRIMARY KEY if it doesn't exist
+      await client.query(`CREATE TABLE IF NOT EXISTS ${tableName} (id VARCHAR(50) PRIMARY KEY)`);
 
-      CREATE TABLE IF NOT EXISTS tables (
-        id VARCHAR(50) PRIMARY KEY,
-        number INTEGER UNIQUE NOT NULL,
-        capacity INTEGER NOT NULL,
-        status VARCHAR(50) NOT NULL,
-        "currentOrderId" VARCHAR(50),
-        "customerName" VARCHAR(255),
-        "guestsCount" INTEGER
-      );
+      // 2. Fetch existing columns in database
+      const existingColsRes = await client.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = $1
+      `, [tableName]);
+      const existingCols = new Set(existingColsRes.rows.map(r => r.column_name.toLowerCase()));
 
-      CREATE TABLE IF NOT EXISTS orders (
-        id VARCHAR(50) PRIMARY KEY,
-        "orderNumber" VARCHAR(50) UNIQUE NOT NULL,
-        "tableNumber" INTEGER NOT NULL,
-        "customerName" VARCHAR(255),
-        items JSONB NOT NULL,
-        subtotal NUMERIC(10, 2) NOT NULL,
-        discount NUMERIC(5, 2) DEFAULT 0,
-        tax NUMERIC(5, 2) DEFAULT 8,
-        "grandTotal" NUMERIC(10, 2) NOT NULL,
-        status VARCHAR(50) NOT NULL,
-        "paymentMethod" VARCHAR(50),
-        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        "specialNotes" TEXT,
-        "waiterId" VARCHAR(50),
-        "waiterName" VARCHAR(255)
-      );
+      // 3. Add any missing columns
+      for (const [colName, colDef] of Object.entries(columns)) {
+        if (colName.toLowerCase() === 'id') continue;
+        if (!existingCols.has(colName.toLowerCase())) {
+          console.log(`Auto-migration: Adding missing column "${colName}" to table "${tableName}"...`);
+          await client.query(`ALTER TABLE ${tableName} ADD COLUMN "${colName}" ${colDef}`);
+        }
+      }
+    }
 
-      CREATE TABLE IF NOT EXISTS reservations (
-        id VARCHAR(50) PRIMARY KEY,
-        "customerName" VARCHAR(255) NOT NULL,
-        phone VARCHAR(100),
-        date VARCHAR(20) NOT NULL,
-        time VARCHAR(20) NOT NULL,
-        guests INTEGER NOT NULL,
-        "tablePreference" VARCHAR(255),
-        status VARCHAR(50) DEFAULT 'Pending',
-        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS inventory_items (
-        id VARCHAR(50) PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        category VARCHAR(100),
-        "currentStock" NUMERIC(10, 2) NOT NULL,
-        "minimumStock" NUMERIC(10, 2) NOT NULL,
-        unit VARCHAR(50) NOT NULL,
-        supplier VARCHAR(255),
-        "expiryDate" VARCHAR(20),
-        "unitCost" NUMERIC(10, 2)
-      );
-
-      CREATE TABLE IF NOT EXISTS staff_members (
-        id VARCHAR(50) PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        role VARCHAR(100) NOT NULL,
-        contact VARCHAR(100),
-        "shiftTiming" VARCHAR(100),
-        "attendanceStatus" VARCHAR(50) DEFAULT 'Present',
-        "performanceRating" NUMERIC(3, 2) DEFAULT 5.0,
-        image TEXT
-      );
-
-      CREATE TABLE IF NOT EXISTS live_activities (
-        id VARCHAR(50) PRIMARY KEY,
-        type VARCHAR(50) NOT NULL,
-        message TEXT NOT NULL,
-        time VARCHAR(100) NOT NULL,
-        severity VARCHAR(50) DEFAULT 'info'
-      );
-
-      CREATE TABLE IF NOT EXISTS system_settings (
-        id VARCHAR(50) PRIMARY KEY,
-        value JSONB NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS customer_feedbacks (
-        id VARCHAR(50) PRIMARY KEY,
-        "customerName" VARCHAR(255) NOT NULL,
-        rating INTEGER NOT NULL,
-        comment TEXT,
-        "waiterId" VARCHAR(50),
-        "waiterName" VARCHAR(255),
-        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        status VARCHAR(50) DEFAULT 'Pending',
-        category VARCHAR(100)
-      );
-    `);
-
-    console.log("PostgreSQL Database tables verified/initialized.");
+    console.log("PostgreSQL Database tables verified/initialized & auto-migrations successfully applied.");
 
     // Seed tables if empty
     // 1. Menu items

@@ -249,6 +249,9 @@ export default function OrderManagementView({
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80';
+                    }}
                   />
                   <div className="absolute top-2 right-2 bg-[#0e0e11]/85 border border-white/10 px-2.5 py-1 rounded-lg font-mono text-xs font-bold text-gold-500">
                     ${item.price.toFixed(2)}
