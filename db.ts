@@ -2,30 +2,7 @@ import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
-
-// Read static defaults from JSON file instead of browser-dependent mockData.ts
-function readDefaultsJson(): any {
-  try {
-    const filePath = path.join(process.cwd(), 'src/data/mockDataDefaults.json');
-    const content = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(content);
-  } catch (err) {
-    console.error("Failed to read mockDataDefaults.json, returning empty defaults:", err);
-    return {
-      menu: [],
-      tables: [],
-      orders: [],
-      reservations: [],
-      inventory: [],
-      staff: [],
-      activities: [],
-      settings: {},
-      feedback: []
-    };
-  }
-}
-
-const defaults = readDefaultsJson();
+import defaults from './src/data/mockDataDefaults.json';
 
 dotenv.config();
 
