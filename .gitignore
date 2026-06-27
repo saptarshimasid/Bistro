@@ -7,4 +7,5 @@ coverage/
 .env*
 !.env.example
 db_fallback.json
+api/index.js
 .vercel_test.cjs

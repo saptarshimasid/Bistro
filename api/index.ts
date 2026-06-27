@@ -1,4 +1,11 @@
+import app from '../server';
+
 export default function handler(req: any, res: any) {
-  res.setHeader("Content-Type", "text/plain");
-  res.status(200).send("Hello from minimal ESModule handler!");
+  return new Promise<void>((resolve) => {
+    res.on('finish', resolve);
+    res.on('close', resolve);
+    
+    // Delegate to Express
+    app(req, res);
+  });
 }
