@@ -19,6 +19,10 @@ dotenv.config();
 let pool: Pool | null = null;
 const FALLBACK_FILE = path.join(process.cwd(), 'db_fallback.json');
 
+export function testDummy(): string {
+  return "Hello from db.ts!";
+}
+
 export function getPool(): Pool | null {
   if (pool) return pool;
 
