@@ -16,13 +16,13 @@ import {
 
 dotenv.config();
 
-const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
-
 let pool: Pool | null = null;
 const FALLBACK_FILE = path.join(process.cwd(), 'db_fallback.json');
 
 export function getPool(): Pool | null {
   if (pool) return pool;
+
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
   if (!connectionString) {
     console.warn("No POSTGRES_URL or DATABASE_URL provided. Falling back to local JSON file database.");
