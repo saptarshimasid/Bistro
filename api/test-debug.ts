@@ -1,4 +1,4 @@
-import { testDummy } from "../db.ts";
+import { testDummy } from "../db";
 
 export default async function handler(req: any, res: any) {
   res.setHeader("Content-Type", "text/plain");
