@@ -83,69 +83,131 @@ function writeFallbackFile(data: FallbackData) {
 
 // Entity parsing helpers to ensure PostgreSQL numeric and date fields map directly to TypeScript types
 function parseMenu(row: any) {
+  const preparationTime = row.preparationTime !== undefined ? row.preparationTime : row.preparationtime;
   return {
-    ...row,
+    id: row.id,
+    name: row.name,
     price: Number(row.price),
-    preparationTime: Number(row.preparationTime)
+    description: row.description,
+    category: row.category,
+    image: row.image,
+    available: row.available,
+    preparationTime: Number(preparationTime)
   };
 }
 
 function parseTable(row: any) {
+  const currentOrderId = row.currentOrderId !== undefined ? row.currentOrderId : row.currentorderid;
+  const customerName = row.customerName !== undefined ? row.customerName : row.customername;
+  const guestsCount = row.guestsCount !== undefined ? row.guestsCount : row.guestscount;
   return {
-    ...row,
+    id: row.id,
     number: Number(row.number),
     capacity: Number(row.capacity),
-    guestsCount: row.guestsCount != null ? Number(row.guestsCount) : undefined,
-    currentOrderId: row.currentOrderId || undefined,
-    customerName: row.customerName || undefined
+    status: row.status,
+    currentOrderId: currentOrderId || undefined,
+    customerName: customerName || undefined,
+    guestsCount: guestsCount != null ? Number(guestsCount) : undefined
   };
 }
 
 function parseOrder(row: any) {
+  const orderNumber = row.orderNumber !== undefined ? row.orderNumber : row.ordernumber;
+  const tableNumber = row.tableNumber !== undefined ? row.tableNumber : row.tablenumber;
+  const customerName = row.customerName !== undefined ? row.customerName : row.customername;
+  const grandTotal = row.grandTotal !== undefined ? row.grandTotal : row.grandtotal;
+  const paymentMethod = row.paymentMethod !== undefined ? row.paymentMethod : row.paymentmethod;
+  const createdAt = row.createdAt !== undefined ? row.createdAt : row.createdat;
+  const updatedAt = row.updatedAt !== undefined ? row.updatedAt : row.updatedat;
+  const specialNotes = row.specialNotes !== undefined ? row.specialNotes : row.specialnotes;
+  const waiterId = row.waiterId !== undefined ? row.waiterId : row.waiterid;
+  const waiterName = row.waiterName !== undefined ? row.waiterName : row.waitername;
+  
   return {
-    ...row,
-    tableNumber: Number(row.tableNumber),
+    id: row.id,
+    orderNumber,
+    tableNumber: Number(tableNumber),
+    customerName: customerName || undefined,
+    items: typeof row.items === 'string' ? JSON.parse(row.items) : row.items,
     subtotal: Number(row.subtotal),
     discount: Number(row.discount),
     tax: Number(row.tax),
-    grandTotal: Number(row.grandTotal),
-    specialNotes: row.specialNotes || undefined,
-    waiterId: row.waiterId || undefined,
-    waiterName: row.waiterName || undefined,
-    paymentMethod: row.paymentMethod || undefined,
-    customerName: row.customerName || undefined
+    grandTotal: Number(grandTotal),
+    status: row.status,
+    paymentMethod: paymentMethod || undefined,
+    createdAt: createdAt instanceof Date ? createdAt.toISOString() : createdAt,
+    updatedAt: updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
+    specialNotes: specialNotes || undefined,
+    waiterId: waiterId || undefined,
+    waiterName: waiterName || undefined
   };
 }
 
 function parseReservation(row: any) {
+  const customerName = row.customerName !== undefined ? row.customerName : row.customername;
+  const tablePreference = row.tablePreference !== undefined ? row.tablePreference : row.tablepreference;
+  const createdAt = row.createdAt !== undefined ? row.createdAt : row.createdat;
   return {
-    ...row,
-    guests: Number(row.guests)
+    id: row.id,
+    customerName,
+    phone: row.phone,
+    date: row.date,
+    time: row.time,
+    guests: Number(row.guests),
+    tablePreference: tablePreference || undefined,
+    status: row.status,
+    createdAt: createdAt instanceof Date ? createdAt.toISOString() : createdAt
   };
 }
 
 function parseInventory(row: any) {
+  const currentStock = row.currentStock !== undefined ? row.currentStock : row.currentstock;
+  const minimumStock = row.minimumStock !== undefined ? row.minimumStock : row.minimumstock;
+  const expiryDate = row.expiryDate !== undefined ? row.expiryDate : row.expirydate;
+  const unitCost = row.unitCost !== undefined ? row.unitCost : row.unitcost;
   return {
-    ...row,
-    currentStock: Number(row.currentStock),
-    minimumStock: Number(row.minimumStock),
-    unitCost: row.unitCost != null ? Number(row.unitCost) : undefined
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    currentStock: Number(currentStock),
+    minimumStock: Number(minimumStock),
+    unit: row.unit,
+    supplier: row.supplier,
+    expiryDate,
+    unitCost: unitCost != null ? Number(unitCost) : undefined
   };
 }
 
 function parseStaff(row: any) {
+  const shiftTiming = row.shiftTiming !== undefined ? row.shiftTiming : row.shifttiming;
+  const attendanceStatus = row.attendanceStatus !== undefined ? row.attendanceStatus : row.attendancestatus;
+  const performanceRating = row.performanceRating !== undefined ? row.performanceRating : row.performancerating;
   return {
-    ...row,
-    performanceRating: Number(row.performanceRating)
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    contact: row.contact,
+    shiftTiming: shiftTiming || '',
+    attendanceStatus: attendanceStatus || 'Present',
+    performanceRating: Number(performanceRating),
+    image: row.image
   };
 }
 
 function parseFeedback(row: any) {
+  const customerName = row.customerName !== undefined ? row.customerName : row.customername;
+  const waiterId = row.waiterId !== undefined ? row.waiterId : row.waiterid;
+  const waiterName = row.waiterName !== undefined ? row.waiterName : row.waitername;
+  const createdAt = row.createdAt !== undefined ? row.createdAt : row.createdat;
   return {
-    ...row,
+    id: row.id,
+    customerName,
     rating: Number(row.rating),
-    waiterId: row.waiterId || undefined,
-    waiterName: row.waiterName || undefined,
+    comment: row.comment,
+    waiterId: waiterId || undefined,
+    waiterName: waiterName || undefined,
+    createdAt: createdAt instanceof Date ? createdAt.toISOString() : createdAt,
+    status: row.status,
     category: row.category || undefined
   };
 }
