@@ -469,7 +469,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const item of data) {
         await client.query(
           `INSERT INTO menu_items (id, name, price, description, category, image, available, "preparationTime")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (id) DO NOTHING`,
           [item.id, item.name, item.price, item.description, item.category, item.image, item.available, item.preparationTime]
         );
       }
@@ -478,7 +479,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const t of data) {
         await client.query(
           `INSERT INTO tables (id, number, capacity, status, "currentOrderId", "customerName", "guestsCount")
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           ON CONFLICT (id) DO NOTHING`,
           [t.id, t.number, t.capacity, t.status, t.currentOrderId || null, t.customerName || null, t.guestsCount || null]
         );
       }
@@ -487,7 +489,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const o of data) {
         await client.query(
           `INSERT INTO orders (id, "orderNumber", "tableNumber", "customerName", items, subtotal, discount, tax, "grandTotal", status, "paymentMethod", "createdAt", "updatedAt", "specialNotes", "waiterId", "waiterName")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+           ON CONFLICT (id) DO NOTHING`,
           [
             o.id, o.orderNumber, o.tableNumber, o.customerName || null, JSON.stringify(o.items),
             o.subtotal, o.discount, o.tax, o.grandTotal, o.status, o.paymentMethod || null,
@@ -500,7 +503,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const r of data) {
         await client.query(
           `INSERT INTO reservations (id, "customerName", phone, date, time, guests, "tablePreference", status, "createdAt")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (id) DO NOTHING`,
           [r.id, r.customerName, r.phone, r.date, r.time, r.guests, r.tablePreference, r.status, r.createdAt]
         );
       }
@@ -509,7 +513,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const i of data) {
         await client.query(
           `INSERT INTO inventory_items (id, name, category, "currentStock", "minimumStock", unit, supplier, "expiryDate", "unitCost")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (id) DO NOTHING`,
           [i.id, i.name, i.category, i.currentStock, i.minimumStock, i.unit, i.supplier, i.expiryDate, i.unitCost || null]
         );
       }
@@ -518,7 +523,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const s of data) {
         await client.query(
           `INSERT INTO staff_members (id, name, role, contact, "shiftTiming", "attendanceStatus", "performanceRating", image)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           ON CONFLICT (id) DO NOTHING`,
           [s.id, s.name, s.role, s.contact, s.shiftTiming, s.attendanceStatus, s.performanceRating, s.image]
         );
       }
@@ -527,14 +533,16 @@ export async function saveDataKey(key: string, data: any) {
       for (const a of data) {
         await client.query(
           `INSERT INTO live_activities (id, type, message, time, severity)
-           VALUES ($1, $2, $3, $4, $5)`,
+           VALUES ($1, $2, $3, $4, $5)
+           ON CONFLICT (id) DO NOTHING`,
           [a.id, a.type, a.message, a.time, a.severity]
         );
       }
     } else if (key === 'settings') {
       await client.query('DELETE FROM system_settings');
       await client.query(
-        `INSERT INTO system_settings (id, value) VALUES ($1, $2)`,
+        `INSERT INTO system_settings (id, value) VALUES ($1, $2)
+         ON CONFLICT (id) DO UPDATE SET value = $2`,
         ['current', JSON.stringify(data)]
       );
     } else if (key === 'feedbacks') {
@@ -542,7 +550,8 @@ export async function saveDataKey(key: string, data: any) {
       for (const f of data) {
         await client.query(
           `INSERT INTO customer_feedbacks (id, "customerName", rating, comment, "waiterId", "waiterName", "createdAt", status, category)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (id) DO NOTHING`,
           [f.id, f.customerName, f.rating, f.comment, f.waiterId || null, f.waiterName || null, f.createdAt, f.status, f.category || null]
         );
       }

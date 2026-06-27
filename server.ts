@@ -296,8 +296,8 @@ app.get("/api/data", async (req, res) => {
 
 // API: Save restaurant data collection to the database
 app.post("/api/save", async (req, res) => {
+  const { key, data } = req.body;
   try {
-    const { key, data } = req.body;
     if (!key) {
       return res.status(400).json({ error: "Key is required" });
     }
