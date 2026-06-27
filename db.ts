@@ -26,9 +26,9 @@ if (connectionString) {
   console.log("Connecting to PostgreSQL database using connection string...");
   pool = new Pool({
     connectionString,
-    ssl: connectionString.includes('vercel-storage.com') || connectionString.includes('neon.tech') 
-      ? { rejectUnauthorized: false } 
-      : false
+    ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+      ? false
+      : { rejectUnauthorized: false }
   });
 } else {
   console.warn("No POSTGRES_URL or DATABASE_URL provided. Falling back to local JSON file database.");
