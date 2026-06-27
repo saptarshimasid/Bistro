@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/test-debug",
-      "destination": "/api/test-debug.ts"
+      "destination": "/api/test-debug.js"
     },
     {
       "source": "/api/(.*)",
