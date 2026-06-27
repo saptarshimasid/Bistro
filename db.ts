@@ -29,7 +29,9 @@ if (connectionString) {
       connectionString,
       ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
         ? false
-        : { rejectUnauthorized: false }
+        : { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+      idleTimeoutMillis: 10000
     });
   } catch (poolErr) {
     console.error("Failed to initialize PostgreSQL pool:", poolErr);
