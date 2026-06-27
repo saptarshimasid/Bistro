@@ -1,16 +1,15 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "isolatedModules": true,
     "allowJs": true,
     "resolveJsonModule": true,
-    "outDir": "./dist",
-    "rootDir": ".."
+    "noEmit": false
   },
   "include": ["./**/*.ts", "../server.ts", "../db.ts", "../src/**/*.ts"]
 }
