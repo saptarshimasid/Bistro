@@ -21,8 +21,14 @@ const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
 let pool: Pool | null = null;
 const FALLBACK_FILE = path.join(process.cwd(), 'db_fallback.json');
 
-// Initialize Pool if connection details exist
-if (connectionString) {
+export function getPool(): Pool | null {
+  if (pool) return pool;
+
+  if (!connectionString) {
+    console.warn("No POSTGRES_URL or DATABASE_URL provided. Falling back to local JSON file database.");
+    return null;
+  }
+
   try {
     console.log("Connecting to PostgreSQL database using connection string...");
     pool = new Pool({
@@ -35,13 +41,14 @@ if (connectionString) {
     });
     pool.on('error', (err) => {
       console.error('Unexpected error on idle client or pool:', err);
+      pool = null; // Re-create pool on next request if a critical error occurs
     });
+    return pool;
   } catch (poolErr) {
     console.error("Failed to initialize PostgreSQL pool:", poolErr);
     pool = null;
+    return null;
   }
-} else {
-  console.warn("No POSTGRES_URL or DATABASE_URL provided. Falling back to local JSON file database.");
 }
 
 interface FallbackData {
@@ -227,13 +234,14 @@ function parseFeedback(row: any) {
 }
 
 export async function initDb() {
-  if (!pool) {
+  const activePool = getPool();
+  if (!activePool) {
     readFallbackFile();
     console.log(`Fallback JSON database initialized at ${FALLBACK_FILE}`);
     return;
   }
 
-  const client = await pool.connect();
+  const client = await activePool.connect();
   client.on('error', (err) => {
     console.error('Database client error during initDb:', err);
   });
@@ -472,7 +480,8 @@ export async function initDb() {
 }
 
 export async function loadAllData() {
-  if (!pool) {
+  const activePool = getPool();
+  if (!activePool) {
     const fallback = readFallbackFile();
     return {
       menuItems: fallback.menu,
@@ -489,7 +498,7 @@ export async function loadAllData() {
 
   let client;
   try {
-    client = await pool.connect();
+    client = await activePool.connect();
     client.on('error', (err) => {
       console.error('Database client error during loadAllData:', err);
     });
@@ -553,14 +562,15 @@ export async function loadAllData() {
 }
 
 export async function saveDataKey(key: string, data: any) {
-  if (!pool) {
+  const activePool = getPool();
+  if (!activePool) {
     const fallback = readFallbackFile();
     (fallback as any)[key] = data;
     writeFallbackFile(fallback);
     return;
   }
 
-  const client = await pool.connect();
+  const client = await activePool.connect();
   client.on('error', (err) => {
     console.error('Database client error during saveDataKey:', err);
   });
@@ -671,14 +681,15 @@ export async function saveDataKey(key: string, data: any) {
 }
 
 export async function resetDb() {
-  if (!pool) {
+  const activePool = getPool();
+  if (!activePool) {
     const defaults = getFallbackDefaults();
     writeFallbackFile(defaults);
     console.log("Fallback JSON database reset to default values.");
     return;
   }
 
-  const client = await pool.connect();
+  const client = await activePool.connect();
   client.on('error', (err) => {
     console.error('Database client error during resetDb:', err);
   });
