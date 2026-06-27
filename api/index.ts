@@ -1,9 +1,4 @@
-import app from '../server';
-
 export default function handler(req: any, res: any) {
-  return new Promise<void>((resolve) => {
-    res.on('finish', resolve);
-    res.on('close', resolve);
-    app(req, res);
-  });
+  res.setHeader("Content-Type", "text/plain");
+  res.status(200).send("Hello from minimal ESModule handler!");
 }
