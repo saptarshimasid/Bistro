@@ -178,7 +178,7 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     price: 26.50,
     description: 'Tender octopus tentacle, fingerling potatoes, smoked paprika aioli, and pickled red onion.',
     category: 'Starters',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1534604973900-c43ab4c2e0ab?w=400&auto=format&fit=crop&q=80',
     available: true,
     preparationTime: 14
   },
@@ -430,7 +430,7 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     price: 11.00,
     description: 'A scoop of artisanal double vanilla gelato drowned in a freshly pulled shot of dark espresso.',
     category: 'Desserts',
-    image: 'https://images.unsplash.com/photo-1594911774802-8822a707cbb3?w=400&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=400&auto=format&fit=crop&q=80',
     available: true,
     preparationTime: 3
   },
@@ -602,7 +602,7 @@ export const INITIAL_MENU_ITEMS: MenuItem[] = [
     price: 49.00,
     description: 'Creste di gallo pasta baked with rich fontina, gruyère, fresh Maine lobster claw meat, shaved white truffle.',
     category: 'Specials',
-    image: 'https://images.unsplash.com/photo-1543083505-590d2beb5c97?w=400&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1543339494-b4cd4f7ba686?w=400&auto=format&fit=crop&q=80',
     available: true,
     preparationTime: 18
   },
@@ -882,7 +882,7 @@ export const INITIAL_ACTIVITIES: LiveActivity[] = [
 ];
 
 export const DEFAULT_SETTINGS: SystemSettings = {
-  restaurantName: 'Bistro DineFlow',
+  restaurantName: 'Bistro',
   currencySymbol: '$',
   taxPercentage: 8,
   defaultDiscountPercentage: 10,

@@ -102,7 +102,7 @@ export default function PublicMenuView({
             </div>
             <div className="text-left">
               <h1 className="font-display font-extrabold text-base tracking-tight text-white leading-tight uppercase">
-                {settings.restaurantName || 'DineFlow RMS'}
+                {settings.restaurantName || 'Bistro'}
               </h1>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
@@ -169,7 +169,7 @@ export default function PublicMenuView({
                   <Coffee className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-extrabold text-white">Welcome to {settings.restaurantName || 'DineFlow RMS'}</h3>
+                  <h3 className="text-sm font-extrabold text-white">Welcome to {settings.restaurantName || 'Bistro'}</h3>
                   <p className="text-xs text-gray-400 leading-relaxed">
                     Explore our exquisite gastronomy menu curated with gourmet ingredients. Simply scan individual plates to see details or tap to add favorites. Our service staff are ready to attend to you.
                   </p>
@@ -349,7 +349,7 @@ export default function PublicMenuView({
             </div>
 
             <div className="text-gray-500 text-[10px] leading-relaxed">
-              *Request transmissions are routed directly to the DineFlow Waiter Service Dashboard to minimize waiting overhead.
+              *Request transmissions are routed directly to the Bistro Waiter Service Dashboard to minimize waiting overhead.
             </div>
           </div>
         )}
@@ -451,8 +451,8 @@ export default function PublicMenuView({
 
       {/* Simplified Footer */}
       <footer className="py-6 border-t border-white/5 text-center text-[10px] text-gray-500 font-mono mt-auto relative z-10">
-        <div>© {new Date().getFullYear()} {settings.restaurantName || 'DineFlow'} • Designed with Hospitality Care</div>
-        <div className="mt-1">Powered by DineFlow Digital Guest Suite</div>
+        <div>© {new Date().getFullYear()} {settings.restaurantName || 'Bistro'} • Designed with Hospitality Care</div>
+        <div className="mt-1">Powered by Bistro Digital Guest Suite</div>
       </footer>
     </div>
   );

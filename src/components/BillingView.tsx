@@ -555,7 +555,7 @@ export default function BillingView({
                       QR CODE
                     </div>
                     <p className="font-sans italic">"THANK YOU FOR DINING WITH US!"</p>
-                    <p className="font-sans font-semibold">DineFlow RMS Integrated Ledger</p>
+                    <p className="font-sans font-semibold">Bistro Integrated Ledger</p>
                   </div>
                 </div>
 

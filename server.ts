@@ -340,7 +340,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`DineFlow full-stack server listening on host 0.0.0.0 port ${PORT}`);
+    console.log(`Bistro server listening on host 0.0.0.0 port ${PORT}`);
   });
 }
 

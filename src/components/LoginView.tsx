@@ -119,7 +119,7 @@ export default function LoginView({ onLogin, settings }: LoginViewProps) {
             )}
             <div className="inline-flex items-center gap-3 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-xs font-medium text-amber-400">
               <Zap className="w-3.5 h-3.5 animate-pulse" />
-              <span>{settings.restaurantName} RMS v1.0 Standard Edition</span>
+              <span>{settings.restaurantName} v1.0 Standard Edition</span>
             </div>
             
             <h1 className="font-display text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
@@ -171,7 +171,7 @@ export default function LoginView({ onLogin, settings }: LoginViewProps) {
           </div>
 
           <div className="text-xs text-gray-600 font-mono">
-            Protected under DineFlow high-security sandbox.
+            Protected under Bistro high-security sandbox.
           </div>
         </div>
 

@@ -1018,7 +1018,7 @@ async function startServer() {
     console.log("Serving compiled production assets.");
   }
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`DineFlow full-stack server listening on host 0.0.0.0 port ${PORT}`);
+    console.log(`Bistro server listening on host 0.0.0.0 port ${PORT}`);
   });
 }
 var server_default = app;

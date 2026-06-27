@@ -476,7 +476,7 @@ export default function SettingsView({
           </div>
 
           <p className="text-xs text-gray-400 leading-relaxed max-w-2xl">
-            Are you finished experimenting with orders, tables occupancy changes, restocking stock logs, reservation seating, and roster additions? Use the database repair trigger below to purge current state cookies and restore DineFlow RMS back to seed defaults.
+            Are you finished experimenting with orders, tables occupancy changes, restocking stock logs, reservation seating, and roster additions? Use the database repair trigger below to purge current state cookies and restore Bistro back to seed defaults.
           </p>
 
           <button
@@ -484,7 +484,7 @@ export default function SettingsView({
             className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/15 border border-red-500/25 text-red-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Reset DineFlow Database Defaults</span>
+            <span>Reset Bistro Database Defaults</span>
           </button>
         </div>
       </div>

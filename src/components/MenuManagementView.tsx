@@ -945,7 +945,7 @@ export default function MenuManagementView({
                                 ${selectedTableForQr ? `<div class="table-label">TABLE ${selectedTableForQr}</div>` : '<div class="table-label">WELCOME MENU</div>'}
                                 <img src="${qrUrl}" alt="QR Code" />
                                 <p>Scan this table sign using any mobile smartphone to browse culinary plates, filter allergens, and notify service crew instantly.</p>
-                                <div class="footer">DINEFLOW GUEST EXPERIENCE SUITE</div>
+                                <div class="footer">BISTRO GUEST EXPERIENCE SUITE</div>
                               </div>
                               <script>
                                 window.onload = function() {

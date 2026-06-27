@@ -80,10 +80,9 @@ export default function Sidebar({
                     <ChefHat className="w-5 h-5" />
                   </div>
                 )}
-                <span className="font-display font-extrabold text-base text-white tracking-tight truncate max-w-[130px]" title={settings.restaurantName}>
+                <span className="font-display font-extrabold text-base text-white tracking-tight truncate max-w-[160px]" title={settings.restaurantName}>
                   {settings.restaurantName}
                 </span>
-                <span className="text-gold-500 text-[10px] font-bold bg-gold-500/10 px-1 py-0.5 rounded flex-shrink-0">RMS</span>
               </motion.div>
               <button
                 onClick={toggleSidebar}

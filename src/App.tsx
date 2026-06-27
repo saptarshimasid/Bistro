@@ -1,5 +1,5 @@
 /**
- * DineFlow RMS Main State Orchestrator
+ * Bistro Main State Orchestrator
  */
 
 import React, { useState, useEffect } from 'react';
@@ -56,6 +56,7 @@ import PublicMenuView from './components/PublicMenuView';
 export default function App() {
   // Database Loading State
   const [isLoading, setIsLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
 
   // 1. Core Authentication States
   const [user, setUser] = useState<UserProfile | null>(() => {
@@ -136,6 +137,31 @@ export default function App() {
 
   // Load data from the server database on page mount
   useEffect(() => {
+    let progressTimer: NodeJS.Timeout;
+    let dataLoaded = false;
+
+    // Start progress simulation
+    progressTimer = setInterval(() => {
+      setLoadProgress((prev) => {
+        if (dataLoaded) {
+          if (prev >= 100) {
+            clearInterval(progressTimer);
+            setTimeout(() => setIsLoading(false), 300);
+            return 100;
+          }
+          return Math.min(100, prev + 15);
+        } else {
+          // Slow down as we approach 90%
+          if (prev < 65) {
+            return prev + Math.floor(Math.random() * 8) + 2;
+          } else if (prev < 90) {
+            return prev + Math.floor(Math.random() * 3) + 1;
+          }
+          return prev;
+        }
+      });
+    }, 80);
+
     fetch(`/api/data?t=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
@@ -148,12 +174,16 @@ export default function App() {
         if (data.activities) setActivities(data.activities);
         if (data.settings) setSettings(data.settings);
         if (data.feedbacks) setFeedbacks(data.feedbacks);
-        setIsLoading(false);
+        dataLoaded = true;
       })
       .catch(err => {
         console.error("Failed to fetch initial restaurant data from server:", err);
-        setIsLoading(false);
+        dataLoaded = true; // Let it proceed to 100% and show defaults
       });
+
+    return () => {
+      clearInterval(progressTimer);
+    };
   }, []);
 
   // Special intermediate seating transit state
@@ -816,35 +846,38 @@ export default function App() {
           {/* Top Decorative Gold Bar */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
           
-          {/* Animated Spinner with Centered Monogram */}
-          <div className="relative flex items-center justify-center w-24 h-24 mb-8">
+          {/* Animated Spinner with Centered Monogram / Percentage */}
+          <div className="relative flex items-center justify-center w-28 h-28 mb-8">
             {/* Outer Spinning Gold Ring */}
             <div className="absolute inset-0 border-2 border-amber-500/10 border-t-amber-500 rounded-full animate-spin" style={{ animationDuration: '1.2s' }}></div>
             {/* Middle Rotating Counter-Spin Ring */}
             <div className="absolute inset-2 border border-dashed border-orange-500/20 border-b-orange-500 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}></div>
-            {/* Monogram */}
-            <div className="text-3xl font-serif font-bold text-amber-500 tracking-wider animate-pulse select-none">
-              DF
+            {/* Percentage / Monogram */}
+            <div className="flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold font-serif text-amber-500 select-none">B</span>
+              <span className="text-xs font-mono text-zinc-400 mt-1 select-none">{loadProgress}%</span>
             </div>
           </div>
 
           {/* Text Content */}
           <h1 className="text-xs uppercase tracking-[0.35em] text-amber-500/80 font-semibold mb-2">
-            D i n e F l o w
+            B i s t r o
           </h1>
           <h2 className="text-lg font-serif text-zinc-100 font-medium mb-1">
             Establishing Portal
           </h2>
-          <p className="text-xs text-zinc-500 animate-pulse">
-            Connecting to Vercel Postgres...
-          </p>
-
-          {/* Luxury details - small status dots */}
-          <div className="flex gap-1.5 mt-8 justify-center items-center">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/30 animate-bounce" style={{ animationDelay: '0ms' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/80 animate-bounce" style={{ animationDelay: '300ms' }} />
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-white/5 border border-white/5 rounded-full h-1.5 mt-4 mb-3 overflow-hidden">
+            <div 
+              className="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all duration-75 ease-out" 
+              style={{ width: `${loadProgress}%` }}
+            />
           </div>
+          
+          <p className="text-[10px] text-zinc-500 font-mono tracking-wider animate-pulse">
+            Connecting to PostgreSQL database...
+          </p>
         </div>
       </div>
     );
