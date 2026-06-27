@@ -23,13 +23,18 @@ const FALLBACK_FILE = path.join(process.cwd(), 'db_fallback.json');
 
 // Initialize Pool if connection details exist
 if (connectionString) {
-  console.log("Connecting to PostgreSQL database using connection string...");
-  pool = new Pool({
-    connectionString,
-    ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
-      ? false
-      : { rejectUnauthorized: false }
-  });
+  try {
+    console.log("Connecting to PostgreSQL database using connection string...");
+    pool = new Pool({
+      connectionString,
+      ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+        ? false
+        : { rejectUnauthorized: false }
+    });
+  } catch (poolErr) {
+    console.error("Failed to initialize PostgreSQL pool:", poolErr);
+    pool = null;
+  }
 } else {
   console.warn("No POSTGRES_URL or DATABASE_URL provided. Falling back to local JSON file database.");
 }
