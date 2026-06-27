@@ -54,6 +54,9 @@ import SettingsView from './components/SettingsView';
 import PublicMenuView from './components/PublicMenuView';
 
 export default function App() {
+  // Database Loading State
+  const [isLoading, setIsLoading] = useState(true);
+
   // 1. Core Authentication States
   const [user, setUser] = useState<UserProfile | null>(() => {
     return loadData<UserProfile | null>('user', null);
@@ -129,6 +132,28 @@ export default function App() {
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Load data from the server database on page mount
+  useEffect(() => {
+    fetch('/api/data')
+      .then(res => res.json())
+      .then(data => {
+        if (data.menuItems) setMenuItems(data.menuItems);
+        if (data.tables) setTables(data.tables);
+        if (data.orders) setOrders(data.orders);
+        if (data.reservations) setReservations(data.reservations);
+        if (data.inventory) setInventory(data.inventory);
+        if (data.staff) setStaff(data.staff);
+        if (data.activities) setActivities(data.activities);
+        if (data.settings) setSettings(data.settings);
+        if (data.feedbacks) setFeedbacks(data.feedbacks);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch initial restaurant data from server:", err);
+        setIsLoading(false);
+      });
   }, []);
 
   // Special intermediate seating transit state
@@ -780,6 +805,53 @@ export default function App() {
         );
     }
   };
+
+  // 5. Database Initial Loading State Check
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#050505] text-white overflow-hidden relative">
+        {/* Decorative Luxury Blur Backdrops */}
+        <div className="absolute top-[30%] left-[35%] w-[300px] h-[300px] bg-amber-500/10 rounded-full blur-[100px] animate-pulse-slow" />
+        <div className="absolute bottom-[30%] right-[35%] w-[300px] h-[300px] bg-orange-600/5 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
+
+        {/* Premium Glassmorphic Loader Container */}
+        <div className="relative flex flex-col items-center p-12 rounded-3xl border border-white/10 bg-black/40 backdrop-blur-2xl shadow-[0_20px_50px_rgba(249,115,22,0.15)] max-w-sm w-full mx-4 text-center animate-fade-in">
+          {/* Top Decorative Gold Bar */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+          
+          {/* Animated Spinner with Centered Monogram */}
+          <div className="relative flex items-center justify-center w-24 h-24 mb-8">
+            {/* Outer Spinning Gold Ring */}
+            <div className="absolute inset-0 border-2 border-amber-500/10 border-t-amber-500 rounded-full animate-spin" style={{ animationDuration: '1.2s' }}></div>
+            {/* Middle Rotating Counter-Spin Ring */}
+            <div className="absolute inset-2 border border-dashed border-orange-500/20 border-b-orange-500 rounded-full animate-spin" style={{ animationDuration: '3s', animationDirection: 'reverse' }}></div>
+            {/* Monogram */}
+            <div className="text-3xl font-serif font-bold text-amber-500 tracking-wider animate-pulse select-none">
+              DF
+            </div>
+          </div>
+
+          {/* Text Content */}
+          <h1 className="text-xs uppercase tracking-[0.35em] text-amber-500/80 font-semibold mb-2">
+            D i n e F l o w
+          </h1>
+          <h2 className="text-lg font-serif text-zinc-100 font-medium mb-1">
+            Establishing Portal
+          </h2>
+          <p className="text-xs text-zinc-500 animate-pulse">
+            Connecting to Vercel Postgres...
+          </p>
+
+          {/* Luxury details - small status dots */}
+          <div className="flex gap-1.5 mt-8 justify-center items-center">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/30 animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/50 animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/80 animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 6. Public menu bypass check (allows customer view without login)
   if (isPreviewPublicMenu) {

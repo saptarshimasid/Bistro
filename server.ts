@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { initDb, loadAllData, saveDataKey } from "./db";
 
 dotenv.config();
 
@@ -282,8 +283,37 @@ app.post("/api/ai/smart-schedule", async (req, res) => {
   }
 });
 
+// API: Get all restaurant data from the database
+app.get("/api/data", async (req, res) => {
+  try {
+    const data = await loadAllData();
+    res.json(data);
+  } catch (error: any) {
+    console.error("Failed to load restaurant data:", error);
+    res.status(500).json({ error: "Failed to load restaurant data", details: error?.message });
+  }
+});
+
+// API: Save restaurant data collection to the database
+app.post("/api/save", async (req, res) => {
+  try {
+    const { key, data } = req.body;
+    if (!key) {
+      return res.status(400).json({ error: "Key is required" });
+    }
+    await saveDataKey(key, data);
+    res.json({ success: true, message: `Successfully saved ${key} data.` });
+  } catch (error: any) {
+    console.error(`Failed to save data for key ${key}:`, error);
+    res.status(500).json({ error: `Failed to save data for key ${key}`, details: error?.message });
+  }
+});
+
 // Start Vite dev server or serve production build
 async function startServer() {
+  // Initialize and seed database
+  await initDb();
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
