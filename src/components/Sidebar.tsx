@@ -62,51 +62,59 @@ export default function Sidebar({
     >
       {/* Top Brand Logo */}
       <div>
-        <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.05]" id="sidebar-header">
+        <div className={`h-16 flex items-center border-b border-white/[0.05] ${isCollapsed ? 'justify-center px-2' : 'justify-between px-4'}`} id="sidebar-header">
           {!isCollapsed ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2.5 overflow-hidden w-full"
-            >
-              {settings.brandLogo ? (
-                <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-black/40 border border-white/10 flex items-center justify-center p-0.5">
-                  <img src={settings.brandLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
-                </div>
-              ) : (
-                <div className="p-1.5 bg-gradient-to-br from-gold-500 to-amber-600 rounded-lg text-black flex-shrink-0">
-                  <ChefHat className="w-5 h-5" />
-                </div>
-              )}
-              <span className="font-display font-extrabold text-base text-white tracking-tight truncate max-w-[130px]" title={settings.restaurantName}>
-                {settings.restaurantName}
-              </span>
-              <span className="text-gold-500 text-[10px] font-bold bg-gold-500/10 px-1 py-0.5 rounded flex-shrink-0">RMS</span>
-            </motion.div>
+            <>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center gap-2.5 overflow-hidden w-full"
+              >
+                {settings.brandLogo ? (
+                  <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-black/40 border border-white/10 flex items-center justify-center p-0.5">
+                    <img src={settings.brandLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                  </div>
+                ) : (
+                  <div className="p-1.5 bg-gradient-to-br from-gold-500 to-amber-600 rounded-lg text-black flex-shrink-0">
+                    <ChefHat className="w-5 h-5" />
+                  </div>
+                )}
+                <span className="font-display font-extrabold text-base text-white tracking-tight truncate max-w-[130px]" title={settings.restaurantName}>
+                  {settings.restaurantName}
+                </span>
+                <span className="text-gold-500 text-[10px] font-bold bg-gold-500/10 px-1 py-0.5 rounded flex-shrink-0">RMS</span>
+              </motion.div>
+              <button
+                onClick={toggleSidebar}
+                className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
+                title="Collapse menu"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            </>
           ) : (
-            <div className="mx-auto">
-              {settings.brandLogo ? (
-                <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center p-0.5">
-                  <img src={settings.brandLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+            <div className="flex items-center justify-center w-full h-full relative group cursor-pointer" onClick={toggleSidebar}>
+              {/* Logo in the center */}
+              <div className="group-hover:opacity-0 transition-opacity duration-200 flex items-center justify-center">
+                {settings.brandLogo ? (
+                  <div className="w-9 h-9 rounded-lg overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center p-0.5">
+                    <img src={settings.brandLogo} alt="Logo" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                  </div>
+                ) : (
+                  <div className="p-1.5 bg-gradient-to-br from-gold-500 to-amber-600 rounded-lg text-black">
+                    <ChefHat className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+              
+              {/* ChevronRight Button on Hover */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <div className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white">
+                  <ChevronRight className="w-5 h-5" />
                 </div>
-              ) : (
-                <div className="p-1.5 bg-gradient-to-br from-gold-500 to-amber-600 rounded-lg text-black">
-                  <ChefHat className="w-5 h-5" />
-                </div>
-              )}
+              </div>
             </div>
-          )}
-
-          {/* Toggle Button */}
-          {!isCollapsed && (
-            <button
-              onClick={toggleSidebar}
-              className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors cursor-pointer"
-              title="Collapse menu"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
           )}
         </div>
 
